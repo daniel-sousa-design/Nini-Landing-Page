@@ -3,6 +3,7 @@ import { useMotionValueEvent, type MotionValue } from 'motion/react';
 import { ANDRADE, LOGO_H, LOGO_W, SCRIPT, SILVA } from '../logoPaths';
 import { heroScaleAt, logoAt } from '../timeline';
 import type { Layout } from '../layout';
+import { HOME_PATH } from '../router';
 
 const REST_X = 520; // where "ANDRADE SILVA" begins in the logo artwork
 
@@ -127,7 +128,7 @@ export default function Logo({ scrollY, layout, reduced }: { scrollY: MotionValu
       <a
         ref={hit}
         className="logo-hit"
-        href="/"
+        href={HOME_PATH}
         aria-label="Nini Andrade Silva — home"
         style={{ width: LOGO_W, height: LOGO_H }}
         onPointerEnter={() => { hovering.current = true; syncHover(); }}

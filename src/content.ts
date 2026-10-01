@@ -57,7 +57,10 @@ export type Thumb = {
 
 export const MAX_SCALE = 1.5;
 
-const img = (n: string) => `/assets/img/${n}.jpg`;
+/** Public asset URL, prefixed with the site's base path (e.g. /Nini-Landing-Page/ on GitHub Pages). */
+export const asset = (path: string) => `${import.meta.env.BASE_URL}assets/${path}`;
+
+const img = (n: string) => asset(`img/${n}.jpg`);
 
 export const HERO = {
   src: img('00-hero-duna'),
@@ -95,13 +98,13 @@ export const GROUP_TWO: Thumb[] = [
 export const GROUP_TWO_H = 1195;
 
 export const BRANDS = [
-  { name: 'Belmond', src: '/assets/brands/belmond.png', w: 139, h: 58 },
-  { name: 'Marriott', src: '/assets/brands/marriott.png', w: 131, h: 52 },
-  { name: 'Highgate', src: '/assets/brands/highgate.png', w: 95, h: 59 },
-  { name: 'Hilton', src: '/assets/brands/hilton.png', w: 86, h: 58 },
-  { name: 'Barceló Hotel Group', src: '/assets/brands/barcelo.png', w: 103, h: 39 },
-  { name: 'Alila', src: '/assets/brands/alila.png', w: 100, h: 39 },
-  { name: 'Octant', src: '/assets/brands/octant.png', w: 152, h: 34 },
+  { name: 'Belmond', src: asset('brands/belmond.png'), w: 139, h: 58 },
+  { name: 'Marriott', src: asset('brands/marriott.png'), w: 131, h: 52 },
+  { name: 'Highgate', src: asset('brands/highgate.png'), w: 95, h: 59 },
+  { name: 'Hilton', src: asset('brands/hilton.png'), w: 86, h: 58 },
+  { name: 'Barceló Hotel Group', src: asset('brands/barcelo.png'), w: 103, h: 39 },
+  { name: 'Alila', src: asset('brands/alila.png'), w: 100, h: 39 },
+  { name: 'Octant', src: asset('brands/octant.png'), w: 152, h: 34 },
 ];
 
 export const SOCIAL = [

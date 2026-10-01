@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import Lenis from 'lenis';
 import { DESCRIPTION_PLACEHOLDER, FACTS_PLACEHOLDER, type Thumb } from '../content';
 import { SCRIPT } from '../logoPaths';
+import { HOME_PATH } from '../router';
 import Words, { useInOut } from './Words';
 import Footer from './Footer';
 
@@ -134,7 +135,7 @@ export default function ProjectPage({ project, onHome, onReady }: Props) {
       <header className="project__nav" data-on-photo={onPhoto || undefined}>
         <a
           className="project__home"
-          href="/"
+          href={HOME_PATH}
           aria-label="Nini Andrade Silva — home"
         >
           <span className="words" data-state={state}>

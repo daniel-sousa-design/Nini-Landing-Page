@@ -5,7 +5,7 @@ import { CAPTION_TWO, GROUP_ONE, GROUP_TWO, slug, type Thumb } from './content';
 import { computeLayout, type Layout } from './layout';
 import { clamp, mix } from './timeline';
 import { useViewport } from './useViewport';
-import { useRoute } from './router';
+import { HOME_PATH, useRoute } from './router';
 import Logo from './components/Logo';
 import Hero from './components/Hero';
 import FloatingField from './components/FloatingField';
@@ -100,7 +100,7 @@ export default function App() {
 
   // Unknown project (or a purely stylistic image): back to the home page.
   useEffect(() => {
-    if (route.name === 'project' && !project) go('/');
+    if (route.name === 'project' && !project) go(HOME_PATH);
   }, [route, project, go]);
 
   // Back on the home page: put the clicked image back where it was.
