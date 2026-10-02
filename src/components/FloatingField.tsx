@@ -1,146 +1,53 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { motion, motionValue, useAnimationFrame, type MotionValue } from 'motion/react';
-import { MAX_SCALE, slug, type LetterStyle, type Thumb } from '../content';
+import { slug, type LetterStyle, type Thumb } from '../content';
 import { projectPath } from '../router';
 import type { PlacedThumb } from '../layout';
-import { clamp, easeInOutCubic, focusAt, smoothstep } from '../timeline';
+import { clamp, easeInOutCubic, smoothstep } from '../timeline';
 
 type Props = {
   items: PlacedThumb[];
   scrollY: MotionValue<number>;
-  W: number;
   VH: number;
-  mobile: boolean;
   reduced: boolean;
   onOpen: (item: Thumb, el: HTMLElement) => void;
 };
 
 type Node = {
   item: PlacedThumb;
-  x: MotionValue<number>;
   y: MotionValue<number>;
   scale: MotionValue<number>;
-  z: MotionValue<number>;
   letters: HTMLSpanElement[];
-  // springs: this image's trailing copy of the scroll position, and its scale
+  // spring: this image's trailing copy of the scroll position
   pos: number;
   vel: number;
-  s: number;
-  sv: number;
-  // per-frame scratch
-  f: number;
-  want: number;
-  cx: number;
-  cy: number;
 };
 
-const GAP = 28; // minimum clearance between images while they grow
-const SCALE_STIFFNESS = 90; // scale is eased on a soft, critically damped spring
-const PLAN_GAP = 44; // clearance planned for when choosing peaks (headroom for trailing)
+const GAP = 28; // minimum clearance kept between images while they trail
+const RISE = 60; // px an image climbs as it arrives
+const START_SCALE = 0.96; // and the size it grows from
+const ENTER = 0.4; // share of the viewport height the entrance is spread over
 
-type Plan = { peak: number; pull: number };
-
-/** Scale an image wants at focus amount f, and where it drifts horizontally. */
-function pose(item: PlacedThumb, plan: Plan, f: number, W: number) {
-  const restCx = item.rect.x + item.rect.w / 2;
-  return {
-    s: 1 + (plan.peak - 1) * f,
-    cx: restCx + (W / 2 - restCx) * plan.pull * f,
-  };
-}
-
-/**
- * Chooses each image's peak scale and centre drift ahead of time. The whole scroll is
- * simulated, and whenever two images would come closer than PLAN_GAP the pair is eased
- * apart: the smaller image gives up its growth first, then the larger drifts less toward
- * the centre, and only then does the larger grow less. At runtime an image's size depends
- * only on its own position, so neighbours can never make it change abruptly.
- */
-function solvePlans(items: PlacedThumb[], W: number, VH: number, mobile: boolean): Plan[] {
-  const plans = items.map((t) => {
-    const p = Math.min(t.peak, MAX_SCALE);
-    return { peak: mobile ? 1 + (p - 1) * 0.25 : p, pull: mobile ? 0 : t.pull };
-  });
-  const area = (t: PlacedThumb) => t.rect.w * t.rect.h;
-  const ease = (plan: Plan) => {
-    plan.peak = plan.peak - 1 < 0.004 ? 1 : 1 + (plan.peak - 1) * 0.9;
-  };
-  const top = Math.min(...items.map((t) => t.rect.y)) - VH;
-  const bottom = Math.max(...items.map((t) => t.rect.y + t.rect.h));
-  const step = VH / 60;
-
-  // Pairs that sit closer than PLAN_GAP in the plan keep their own clearance.
-  const gapOf = (a: PlacedThumb, b: PlacedThumb) => {
-    const ra = a.rect;
-    const rb = b.rect;
-    const free = Math.max(
-      Math.abs(ra.x + ra.w / 2 - (rb.x + rb.w / 2)) - (ra.w + rb.w) / 2,
-      Math.abs(ra.y + ra.h / 2 - (rb.y + rb.h / 2)) - (ra.h + rb.h) / 2,
-    );
-    return clamp(free, 0, PLAN_GAP);
-  };
-
-  for (let pass = 0; pass < 120; pass++) {
-    let changed = false;
-    for (let s = top; s <= bottom; s += step) {
-      const poses = items.map((t, i) => {
-        const cy = t.rect.y + t.rect.h / 2 - s;
-        const f = focusAt(cy / VH);
-        return { f, cy, ...pose(t, plans[i], f, W) };
-      });
-      for (let i = 0; i < items.length; i++) {
-        for (let j = i + 1; j < items.length; j++) {
-          const a = poses[i];
-          const b = poses[j];
-          if (a.f === 0 && b.f === 0) continue;
-          const ra = items[i].rect;
-          const rb = items[j].rect;
-          const gap = gapOf(items[i], items[j]);
-          const ox = (ra.w * a.s + rb.w * b.s) / 2 + gap - Math.abs(a.cx - b.cx);
-          const oy = (ra.h * a.s + rb.h * b.s) / 2 + gap - Math.abs(a.cy - b.cy);
-          if (ox <= 0.5 || oy <= 0.5) continue;
-          const [small, large] = area(items[i]) < area(items[j]) ? [plans[i], plans[j]] : [plans[j], plans[i]];
-          if (small.peak > 1) ease(small);
-          else if (Math.abs(large.pull) > 0.01) large.pull *= 0.85;
-          else if (large.peak > 1) ease(large);
-          else continue; // touching even at rest: nothing growth can fix
-          changed = true;
-        }
-      }
-    }
-    if (!changed) break;
-  }
-  return plans;
-}
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 /**
  * Every image floats in its own depth plane: it follows the scroll through its own
- * spring, so it trails slightly and eases to rest after the page stops. Images never
- * push one another, and each one's peak size is chosen ahead of time (solvePeaks) so
- * enlarged images do not collide.
+ * spring, so it trails slightly and eases to rest after the page stops. Each one keeps
+ * its place and size; it only rises in, growing a touch, as it enters from below.
  */
-export default function FloatingField({ items, scrollY, W, VH, mobile, reduced, onOpen }: Props) {
+export default function FloatingField({ items, scrollY, VH, reduced, onOpen }: Props) {
   const nodes = useMemo<Node[]>(
     () =>
       items.map((item) => ({
         item,
-        x: motionValue(0),
         y: motionValue(0),
         scale: motionValue(1),
-        z: motionValue(10),
         letters: [],
         pos: scrollY.get(),
         vel: 0,
-        s: 1,
-        sv: 0,
-        f: 0,
-        want: 1,
-        cx: 0,
-        cy: 0,
       })),
     [items, scrollY],
   );
-  const plans = useMemo(() => solvePlans(items, W, VH, mobile), [items, W, VH, mobile]);
 
   useAnimationFrame((_, delta) => {
     const target = scrollY.get();
@@ -191,48 +98,22 @@ export default function FloatingField({ items, scrollY, W, VH, mobile, reduced, 
       }
     }
 
-    // 2. The size and position each image would take on its own.
-    nodes.forEach((n, i) => {
-      const { rect } = n.item;
-      n.cy = rect.y + rect.h / 2 - n.pos;
-      n.f = reduced ? 0 : focusAt(n.cy / VH);
-      const p = pose(n.item, plans[i], n.f, W);
-      n.want = p.s;
-      n.cx = p.cx;
-    });
-
-    // 3. Ease toward that size on a soft spring, so scale always glides.
-    for (const n of nodes) {
-      if (reduced) {
-        n.s = 1;
-        n.sv = 0;
-        continue;
-      }
-      const k = SCALE_STIFFNESS;
-      n.sv += (k * (n.want - n.s) - 2 * Math.sqrt(k) * n.sv) * dt;
-      n.s += n.sv * dt;
-    }
-
-    // 4. Keep enlarged images on screen, then write the transforms.
+    // 2. Entrance, scrubbed by where the image's top edge sits as it comes up from below.
     for (const n of nodes) {
       const { rect } = n.item;
-      const restCx = rect.x + rect.w / 2;
-      const margin = Math.max(0, Math.min(16, rect.x, W - rect.x - rect.w));
-      const half = (rect.w * n.s) / 2;
-      const cx = W - 2 * margin >= 2 * half ? clamp(n.cx, margin + half, W - margin - half) : W / 2;
-      n.x.set(cx - restCx);
-      n.y.set(target - n.pos);
-      n.scale.set(n.s);
-      n.z.set(10 + Math.round(n.f * 10));
-      if (n.letters.length) animateTitle(n.letters, n.cy / VH, reduced);
+      const top = rect.y - n.pos;
+      const e = reduced ? 1 : easeOutCubic(clamp((VH - top) / (VH * ENTER), 0, 1));
+      n.y.set(target - n.pos + (1 - e) * RISE);
+      n.scale.set(START_SCALE + (1 - START_SCALE) * e);
+      if (n.letters.length) animateTitle(n.letters, (top + rect.h / 2) / VH, reduced);
     }
   });
 
   return (
     <>
       {nodes.map((n) => {
-        const { item, x, y, scale, z } = n;
-        const style = { left: item.rect.x, top: item.rect.y, width: item.rect.w, height: item.rect.h, x, y, scale, zIndex: z };
+        const { item, y, scale } = n;
+        const style = { left: item.rect.x, top: item.rect.y, width: item.rect.w, height: item.rect.h, y, scale };
         const inner = (
           <>
             <img src={item.src} alt="" draggable={false} />

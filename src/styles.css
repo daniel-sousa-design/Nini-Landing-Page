@@ -13,7 +13,7 @@
 }
 
 :root {
-  --page: #d3cdbc; /* updated with scroll */
+  --page: #efebe3;
   --ink: #0f0f0f;
   --light: #efebe3;
   --muted: #9a9a9a;
@@ -96,6 +96,7 @@ button { font: inherit; text-transform: inherit; letter-spacing: inherit; color:
 
 .thumb {
   display: block;
+  z-index: 10;
   will-change: transform;
   outline: none;
 }
@@ -226,7 +227,7 @@ button { font: inherit; text-transform: inherit; letter-spacing: inherit; color:
 }
 
 .logo {
-  z-index: 5;
+  z-index: 60;
   pointer-events: none;
 }
 

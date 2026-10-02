@@ -2,13 +2,21 @@ import { GROUP_ONE, GROUP_ONE_H, GROUP_TWO, GROUP_TWO_H, STONES, type Thumb } fr
 
 export const PLAN_W = 1728;
 export const MOBILE_BP = 768;
-export const SECTION_GAP = 100;
-/** Extra space above and below the full-bleed stones image. */
-export const STONES_MARGIN = 200;
-/** Extra space below the "Where interiors become emotional landmarks" caption. */
-export const CAPTION_TWO_BELOW = 100;
-/** Extra breathing room between the last images and the brands strip / footer. */
-export const END_PADDING = 300;
+
+/** Desktop spacing between sections, in pixels of the page plan. */
+const PLAN_GAPS = {
+  heroToGroupOne: 52,
+  groupOneToStones: 149,
+  stonesToCaption: 109,
+  captionToGroupTwo: 107,
+  groupTwoToEnd: 217, // before the brands strip and footer
+};
+
+/** Phone spacing between sections, in pixels. */
+const SECTION_GAP = 100;
+const STONES_MARGIN = 200; // extra space above and below the full-bleed stones image
+const CAPTION_TWO_BELOW = 100; // extra space below the second caption
+const END_PADDING = 300; // extra room before the brands strip and footer
 
 export type Rect = { x: number; y: number; w: number; h: number };
 export type PlacedThumb = Thumb & { rect: Rect };
@@ -27,7 +35,7 @@ export type Layout = {
   height: number; // height of the scroll composition, before the brands strip and footer
 };
 
-/** Desktop: the plan scaled to the viewport width, sections 100px apart. */
+/** Desktop: the plan scaled to the viewport width, spacing included. */
 function desktop(W: number, VH: number): Layout {
   const u = W / PLAN_W;
   const place = (t: Thumb, top: number): PlacedThumb => ({
@@ -39,13 +47,14 @@ function desktop(W: number, VH: number): Layout {
   const captionH = Math.max(18, 24 * u);
   const heroCaption = { x: 0, y: VH - 52 * u - captionH / 2, w: W, h: captionH };
 
-  const g1Top = hero.h + SECTION_GAP;
+  const gap = (k: keyof typeof PLAN_GAPS) => PLAN_GAPS[k] * u;
+  const g1Top = hero.h + gap('heroToGroupOne');
   const groupOne = GROUP_ONE.map((t) => place(t, g1Top));
-  const stones = { x: 0, y: g1Top + GROUP_ONE_H * u + SECTION_GAP + STONES_MARGIN, w: W, h: STONES.h * u };
-  const captionTwo = { x: 0, y: stones.y + stones.h + SECTION_GAP + STONES_MARGIN, w: W, h: captionH };
-  const g2Top = captionTwo.y + captionTwo.h + SECTION_GAP + CAPTION_TWO_BELOW;
+  const stones = { x: 0, y: g1Top + GROUP_ONE_H * u + gap('groupOneToStones'), w: W, h: STONES.h * u };
+  const captionTwo = { x: 0, y: stones.y + stones.h + gap('stonesToCaption'), w: W, h: captionH };
+  const g2Top = captionTwo.y + captionTwo.h + gap('captionToGroupTwo');
   const groupTwo = GROUP_TWO.map((t) => place(t, g2Top));
-  const height = g2Top + GROUP_TWO_H * u + SECTION_GAP + END_PADDING;
+  const height = g2Top + GROUP_TWO_H * u + gap('groupTwoToEnd');
 
   return { W, VH, u, mobile: false, hero, heroCaption, groupOne, stones, captionTwo, groupTwo, height };
 }

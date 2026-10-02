@@ -80,9 +80,7 @@ export default function Logo({ scrollY, layout, reduced }: { scrollY: MotionValu
 
     const transform = `translate3d(${st.x}px, ${st.y}px, 0) scale(${st.scale})`;
     el.style.transform = transform;
-    el.style.zIndex = st.front ? '60' : '5';
-    // The hit area tracks the visible mark and stays above the images, so the logo can be
-    // hovered and clicked even while photographs drift over it.
+    // The hit area tracks the visible mark, so the logo can be hovered and clicked wherever it is.
     hit.current.style.transform = transform;
     const isCompact = st.collapse > 0.98;
     if (isCompact !== compact.current) {

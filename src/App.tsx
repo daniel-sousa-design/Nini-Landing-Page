@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useMotionValueEvent, useReducedMotion, useScroll, type MotionValue } from 'motion/react';
+import { useReducedMotion, useScroll } from 'motion/react';
 import { ReactLenis, useLenis } from 'lenis/react';
 import { CAPTION_TWO, GROUP_ONE, GROUP_TWO, slug, type Thumb } from './content';
-import { computeLayout, type Layout } from './layout';
+import { computeLayout } from './layout';
 import { clamp, mix } from './timeline';
 import { useViewport } from './useViewport';
 import { HOME_PATH, useRoute } from './router';
@@ -15,37 +15,6 @@ import CursorLabel from './components/CursorLabel';
 import Footer, { Brands } from './components/Footer';
 import ExpandingImage, { type Opening } from './components/ExpandingImage';
 import ProjectPage from './components/ProjectPage';
-
-const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-
-/** The page warms from sand to pale cream as you descend. */
-function useBackgroundTone(scrollY: MotionValue<number>, layout: Layout) {
-  const stops = useMemo(() => {
-    const { VH, groupOne, stones, captionTwo, groupTwo, height } = layout;
-    return [
-      [0, '#d3cdbc'],
-      [VH * 0.9, '#d3cdbc'],
-      [groupOne[4].rect.y - VH * 0.4, '#ede7d7'],
-      [stones.y, '#ede7d7'],
-      [captionTwo.y - VH * 0.5, '#f3eee1'],
-      [groupTwo[2].rect.y - VH * 0.5, '#f8f5ea'],
-      [height - VH * 0.6, '#fbf8ed'],
-    ].map(([s, c]) => [s as number, hex(c as string)] as const);
-  }, [layout]);
-
-  const paint = (s: number) => {
-    let i = 0;
-    while (i < stops.length - 2 && s > stops[i + 1][0]) i++;
-    const [s0, c0] = stops[i];
-    const [s1, c1] = stops[i + 1];
-    const t = clamp((s - s0) / Math.max(1, s1 - s0), 0, 1);
-    const rgb = c0.map((v, k) => Math.round(mix(v, c1[k], t)));
-    document.documentElement.style.setProperty('--page', `rgb(${rgb.join(',')})`);
-  };
-
-  useMotionValueEvent(scrollY, 'change', paint);
-  useEffect(() => paint(scrollY.get()));
-}
 
 /** A heavier glide over the hero, the regular one afterwards. */
 function ScrollPacing({ VH, reduced }: { VH: number; reduced: boolean }) {
@@ -74,7 +43,6 @@ export default function App() {
   const layout = useMemo(() => computeLayout(W, VH), [W, VH]);
   const reduced = useReducedMotion() ?? false;
   const { scrollY } = useScroll();
-  useBackgroundTone(scrollY, layout);
 
   const shared = { scrollY, VH, reduced };
   const thumbs = useMemo(() => [...layout.groupOne, ...layout.groupTwo], [layout]);
@@ -120,7 +88,7 @@ export default function App() {
         <Hero scrollY={scrollY} layout={layout} reduced={reduced} />
         <Stones rect={layout.stones} {...shared} />
         <Caption text={CAPTION_TWO} rect={layout.captionTwo} {...shared} />
-        <FloatingField items={thumbs} W={W} mobile={layout.mobile} onOpen={open} {...shared} />
+        <FloatingField items={thumbs} onOpen={open} {...shared} />
       </main>
 
       <Brands />

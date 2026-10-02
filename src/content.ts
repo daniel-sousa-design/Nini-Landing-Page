@@ -2,9 +2,6 @@
  * Page content and resting boxes, in pixels of the 1728px-wide page plan.
  * Thumbnail y values are relative to the top of their group.
  *
- * peak  – scale reached while the image passes through the middle of the viewport (≤ MAX_SCALE)
- * pull  – how far the image drifts toward the horizontal centre at its peak
- *         (1 = all the way, negative = away from the centre)
  * depth – 0 (near, follows scroll tightly) … 1 (far, trails further behind)
  */
 export type LetterStyle = { features?: string; axis?: number };
@@ -38,8 +35,6 @@ export type Thumb = {
   y: number;
   w: number;
   h: number;
-  peak: number;
-  pull: number;
   depth: number;
   /**
    * Optional title set over the photograph in the Nini typeface, axis at its far end.
@@ -55,7 +50,6 @@ export type Thumb = {
   decorative?: boolean;
 };
 
-export const MAX_SCALE = 1.5;
 
 /** Public asset URL, prefixed with the site's base path (e.g. /Nini-Landing-Page/ on GitHub Pages). */
 export const asset = (path: string) => `${import.meta.env.BASE_URL}assets/${path}`;
@@ -69,18 +63,17 @@ export const HERO = {
 };
 
 export const GROUP_ONE: Thumb[] = [
-  { id: '01', src: img('01'), title: 'Onda Chaise', x: 1442, y: 0, w: 274, h: 276, peak: 1.5, pull: 0.12, depth: 0.5 },
-  { id: '02', src: img('02'), title: 'Lounge Interior', x: 12, y: 179, w: 370, h: 274, peak: 1.45, pull: 0.12, depth: 0.25 },
-  { id: '03', src: img('03'), title: 'Villas & Golfe', x: 1291, y: 276, w: 130, h: 183, peak: 1.5, pull: 0.1, depth: 0.55 },
-  { id: '04', src: img('04'), title: 'Pink Dining Room', x: 15, y: 746, w: 205, h: 325, peak: 1.5, pull: 0, depth: 0.6 },
-  { id: '05', src: img('05'), title: 'Banana Prata da Madeira', x: 727, y: 765, w: 733, h: 488, peak: 1.31, pull: 0.4, depth: 0.15 },
-  { id: '06', src: img('06'), title: 'Golden Bar', x: 441, y: 1009, w: 192, h: 211, peak: 1.4, pull: -0.14, depth: 0.9 },
-  { id: '07', src: img('07-funchal'), title: 'Funchal', overlay: { text: 'Funchal' }, decorative: true, x: 882, y: 1468, w: 382, h: 255, peak: 1.4, pull: 0.2, depth: 0.45 },
-  { id: '08', src: img('08'), title: 'The Collection', x: 155, y: 1939, w: 834, h: 497, peak: 1.2, pull: 0.4, depth: 0.1 },
-  { id: '09', src: img('09'), title: 'The Studio', x: 1220, y: 2674, w: 341, h: 227, peak: 1.5, pull: 0.14, depth: 0.7 },
-  { id: '10', src: img('10'), title: 'Chrome Sofa', x: 155, y: 3109, w: 350, h: 244, peak: 1.5, pull: 0.08, depth: 0.4 },
+  { id: '01', src: img('01'), title: 'Onda Chaise', x: 1295, y: 0, w: 421, h: 425, depth: 0.5 },
+  { id: '02', src: img('02'), title: 'Lounge Interior', x: 12, y: 192, w: 846, h: 626, depth: 0.25 },
+  { id: '03', src: img('03'), title: 'Villas & Golfe', x: 1013, y: 663, w: 417, h: 591, depth: 0.55 },
+  { id: '05', src: img('05'), title: 'Banana Prata da Madeira', x: 727, y: 1410, w: 989, h: 659, depth: 0.15 },
+  { id: '06', src: img('06'), title: 'Golden Bar', x: 298, y: 1589, w: 335, h: 368, depth: 0.9 },
+  { id: '07', src: img('07-funchal'), title: 'Funchal', overlay: { text: 'Funchal' }, decorative: true, x: 524, y: 2225, w: 679, h: 453, depth: 0.45 },
+  { id: '08', src: img('08'), title: 'The Collection', x: 12, y: 2834, w: 1132, h: 675, depth: 0.1 },
+  { id: '09', src: img('09'), title: 'The Studio', x: 870, y: 3675, w: 703, h: 469, depth: 0.7 },
+  { id: '10', src: img('10'), title: 'Chrome Sofa', x: 155, y: 3978, w: 560, h: 391, depth: 0.4 },
 ];
-export const GROUP_ONE_H = 3385;
+export const GROUP_ONE_H = 4369;
 
 export const STONES = {
   src: img('11'),
@@ -91,11 +84,11 @@ export const STONES = {
 export const CAPTION_TWO = 'Where interiors become emotional landmarks';
 
 export const GROUP_TWO: Thumb[] = [
-  { id: '12', src: img('12'), title: 'Suite Bathroom', x: 31, y: 0, w: 989, h: 660, peak: 1.15, pull: 0.2, depth: 0.15 },
-  { id: '13', src: img('13-interior'), title: 'Interior', overlay: { text: 'Interior', features: '"ss05"', letters: { I: { features: '"ss06"', axis: 0 } } }, decorative: true, x: 1240, y: 263, w: 341, h: 271, peak: 1.5, pull: 0.12, depth: 0.6 },
-  { id: '14', src: img('14'), title: 'Living Room View', x: 910, y: 827, w: 328, h: 368, peak: 1.4, pull: 0.1, depth: 0.35 },
+  { id: '12', src: img('12'), title: 'Suite Bathroom', x: 12, y: 0, w: 989, h: 660, depth: 0.15 },
+  { id: '13', src: img('13-interior'), title: 'Interior', overlay: { text: 'Interior', features: '"ss05"', letters: { I: { features: '"ss06"', axis: 0 } } }, decorative: true, x: 1240, y: 611, w: 340, h: 271, depth: 0.6 },
+  { id: '14', src: img('14'), title: 'Living Room View', x: 728, y: 1088, w: 702, h: 790, depth: 0.35 },
 ];
-export const GROUP_TWO_H = 1195;
+export const GROUP_TWO_H = 1878;
 
 export const BRANDS = [
   { name: 'Belmond', src: asset('brands/belmond.png'), w: 139, h: 58 },
